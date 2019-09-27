@@ -3,13 +3,13 @@ import dlib
 import face_recognition
 import numpy as np
 import runway
-from runway.data_types import category, image, vector, array, number, any
+from runway.data_types import category, image, vector, array, number, any, image_bounding_box
 from PIL import Image
 
 # in: (top, right, bottom, left)
 # out: (left, top, right, bottom)
-def fr_rect_to_pil_rect(rect):
-    return rect[3], rect[0], rect[1], rect[2]
+def fr_rect_to_pil_rect(rect, width, height):
+    return rect[3]/width, rect[0]/height, rect[1]/width, rect[2]/height
 
 # in: (left, top, right, bottom)
 # out: (left, top, width, height)
@@ -47,8 +47,7 @@ identify_face_inputs = {
     'match_tolerance': number(min=0.1, max=1.0, step=0.1, default=0.6)
 }
 identify_face_outputs = {
-    'results': array(item_type=any),
-    'size': any
+    'results': array(image_bounding_box),
 }
 @runway.command('identify_face', inputs=identify_face_inputs, outputs=identify_face_outputs)
 def identify_face(model, args):
@@ -79,14 +78,11 @@ def identify_face(model, args):
             label_encodings[0],
             tolerance=args['match_tolerance'])
         if True in matches:
-            faces = [ pil_rect_to_x_y_w_h(fr_rect_to_pil_rect(face)) for face in input_locations ]
-            match_index = matches.index(True)
-            results = [{ 'bbox': faces[match_index], 'class': 'Match Found' }]
-    return { 'results': results, 'size': { 'width': width, 'height': height } }
+            faces = [ fr_rect_to_pil_rect(face, width, height) for face in input_locations ]
+    return { 'results': faces }
 
 detect_faces_output = {
-    'results': array(item_type=any),
-    'size': any
+    'results': array(image_bounding_box)
 }
 @runway.command('detect_faces', inputs={ 'image': image }, outputs=detect_faces_output)
 def detect_faces(model, args):
@@ -97,10 +93,8 @@ def detect_faces(model, args):
     faces = face_recognition.face_locations(np_arr, **get_model_kwargs())
 
     results = []
-    faces = [ pil_rect_to_x_y_w_h(fr_rect_to_pil_rect(face)) for face in faces ]
-    for i in range(len(faces)):
-        results.append({ 'bbox': faces[i], 'class': 'Face #{}'.format(i + 1)})
-    return { 'results': results, 'size': { 'width': width, 'height': height } }
+    faces = [ fr_rect_to_pil_rect(face, width, height) for face in faces ]
+    return { 'results': faces }
 
 if __name__ == '__main__':
     runway.run()
