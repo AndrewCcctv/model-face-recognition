@@ -77,8 +77,9 @@ def identify_face(model, args):
             input_encodings,
             label_encodings[0],
             tolerance=args['match_tolerance'])
-        if True in matches:
-            faces = [ fr_rect_to_pil_rect(face, width, height) for face in input_locations ]
+        for i in range(len(matches)):
+            if matches[i] == True:
+                faces.append(fr_rect_to_pil_rect(input_locations[i], width, height))
     return { 'results': faces }
 
 detect_faces_output = {
