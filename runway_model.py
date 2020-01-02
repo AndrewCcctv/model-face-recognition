@@ -71,6 +71,7 @@ def identify_face(model, args):
     width = input_arr.shape[1]
     height = input_arr.shape[0]
     results = []
+    faces = []
     if len(input_encodings) > 0 and len(label_encodings) > 0:
         # compare the labeled encoding to each face found in the input image
         matches = face_recognition.compare_faces(
