@@ -78,9 +78,10 @@ def identify_face(model, args):
             input_encodings,
             label_encodings[0],
             tolerance=args['match_tolerance'])
-        for i in range(len(matches)):
-            if matches[i] == True:
-                faces.append(fr_rect_to_pil_rect(input_locations[i], width, height))
+        faces = [fr_rect_to_pil_rect(item, width, height) for (item, bl) in zip(input_locations, matches) if bl == True]
+#         for i in range(len(matches)):
+#             if matches[i] == True:
+#                 faces.append(fr_rect_to_pil_rect(c[i], width, height))
     return { 'results': faces }
 
 detect_faces_output = {
