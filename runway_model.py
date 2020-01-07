@@ -71,14 +71,15 @@ def identify_face(model, args):
     width = input_arr.shape[1]
     height = input_arr.shape[0]
     results = []
+    faces = []
     if len(input_encodings) > 0 and len(label_encodings) > 0:
         # compare the labeled encoding to each face found in the input image
         matches = face_recognition.compare_faces(
             input_encodings,
             label_encodings[0],
             tolerance=args['match_tolerance'])
-        if True in matches:
-            faces = [ fr_rect_to_pil_rect(face, width, height) for face in input_locations ]
+        faces = [fr_rect_to_pil_rect(item, width, height) for (item, bl) in zip(input_locations, matches) if bl == True]
+
     return { 'results': faces }
 
 detect_faces_output = {
